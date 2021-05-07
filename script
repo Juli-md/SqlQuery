@@ -1,0 +1,78 @@
+IF (OBJECT_ID('Products') IS NULL)
+BEGIN
+	CREATE table Products (
+		Id int PRIMARY KEY IDENTITY,
+		Name varchar(MAX)
+	)
+END
+ELSE
+BEGIN
+	TRUNCATE TABLE Products
+END
+GO
+
+IF (OBJECT_ID('Categories') IS NULL)
+BEGIN
+	CREATE table Categories (
+		Id int PRIMARY KEY IDENTITY,
+		Name varchar(MAX)
+	)
+END
+ELSE
+BEGIN
+	TRUNCATE TABLE Categories
+END
+GO
+IF (OBJECT_ID('ProductCategoriesCross') IS NULL)
+BEGIN
+	CREATE table ProductCategoriesCross (
+		Id int PRIMARY KEY IDENTITY,
+		ProductId int,
+		CategoryId int
+	)
+END
+ELSE
+BEGIN
+	TRUNCATE TABLE ProductCategoriesCross
+END
+GO
+
+INSERT INTO Products(Name)
+	VALUES 
+		('Телефон'), ('Ноутбук'), ('Видеокарта'), ('Секретный продукт')
+
+INSERT INTO Categories (Name)
+	VALUES
+		('Электроника'), ('Компьютеры')
+
+INSERT ProductCategoriesCross(ProductId, CategoryId)
+	SELECT
+		(SELECT Id FROM Products WHERE Name = 'Телефон'), (SELECT Id FROM Categories WHERE Name = 'Электроника')
+	UNION
+	SELECT
+		(SELECT Id FROM Products WHERE Name = 'Ноутбук'), (SELECT Id FROM Categories WHERE Name = 'Электроника')
+	UNION
+	SELECT
+		(SELECT Id FROM Products WHERE Name = 'Ноутбук'), (SELECT Id FROM Categories WHERE Name = 'Компьютеры')
+	UNION
+	SELECT
+		(SELECT Id FROM Products WHERE Name = 'Ноутбук'), (SELECT Id FROM Categories WHERE Name = 'Электроника')
+
+
+
+
+SELECT 
+	p.Name,
+	ISNULL(c.Name, 'Категория отсутствует')
+	FROM Products AS p
+	LEFT JOIN ProductCategoriesCross AS pc ON pc.ProductId = p.Id
+	LEFT JOIN Categories AS c ON c.Id = pc.CategoryId
+	GROUP BY
+		p.Id,
+		p.Name,
+		c.Id,
+		c.Name
+	ORDER BY
+		p.Name,
+		c.Name
+		
